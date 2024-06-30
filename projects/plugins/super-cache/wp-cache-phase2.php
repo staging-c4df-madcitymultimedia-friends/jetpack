@@ -727,6 +727,11 @@ function wp_cache_debug( $message, $level = 1 ) {
 		return false;
 	}
 
+	// if cache path is gone, then don't log anything
+	if ( empty( $cache_path ) || ! is_dir( $cache_path ) ) {
+		return;
+	}
+
 	// Log message: Date URI Message
 	$log_message = date( 'H:i:s' ) . ' ' . getmypid() . " {$_SERVER['REQUEST_URI']} {$message}" . PHP_EOL;
 	// path to the log file in the cache folder
@@ -2541,7 +2546,7 @@ function wp_cache_get_ob( &$buffer ) {
 	}
 
 	if ( $added_cache && isset( $wp_supercache_cache_list ) && $wp_supercache_cache_list ) {
-		update_option( 'wpsupercache_count', ( get_option( 'wpsupercache_count' ) + 1 ) );
+		update_option( 'wpsupercache_count', (int) get_option( 'wpsupercache_count' ) + 1 );
 		$last_urls = (array) get_option( 'supercache_last_cached' );
 		if ( count( $last_urls ) >= 10 ) {
 			$last_urls = array_slice( $last_urls, 1, 9 );

@@ -6,8 +6,7 @@
  * sharing message.
  */
 
-import { useConnection } from '@automattic/jetpack-connection';
-import { Disabled, ExternalLink, PanelRow } from '@wordpress/components';
+import { Disabled, PanelRow } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { Fragment, useMemo } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
@@ -22,14 +21,17 @@ import useRefreshAutoConversionSettings from '../../hooks/use-refresh-auto-conve
 import useRefreshConnections from '../../hooks/use-refresh-connections';
 import useSocialMediaConnections from '../../hooks/use-social-media-connections';
 import { store as socialStore } from '../../social-store';
+import { ThemedConnectionsModal as ManageConnectionsModal } from '../manage-connections-modal';
 import { AdvancedPlanNudge } from './advanced-plan-nudge';
 import { AutoConversionNotice } from './auto-conversion-notice';
 import { BrokenConnectionsNotice } from './broken-connections-notice';
 import { ConnectionsList } from './connections-list';
 import { EnabledConnectionsNotice } from './enabled-connections-notice';
 import { InstagramNoMediaNotice } from './instagram-no-media-notice';
+import { SettingsButton } from './settings-button';
 import { ShareCountInfo } from './share-count-info';
 import { SharePostForm } from './share-post-form';
+import styles from './styles.module.scss';
 import { UnsupportedConnectionsNotice } from './unsupported-connections-notice';
 import { ValidationNotice } from './validation-notice';
 
@@ -43,15 +45,18 @@ export default function PublicizeForm() {
 	const refreshConnections = useRefreshConnections();
 	const { isEnabled: isSocialImageGeneratorEnabledForPost } = useImageGeneratorConfig();
 	const { shouldShowNotice, NOTICES } = useDismissNotice();
-	const { isPublicizeEnabled, isPublicizeDisabledBySitePlan, connectionsAdminUrl } =
-		usePublicizeConfig();
+	const {
+		isPublicizeEnabled,
+		isPublicizeDisabledBySitePlan,
+		needsUserConnection,
+		userConnectionUrl,
+	} = usePublicizeConfig();
 
-	const useConnectionUrl = useSelect( select => select( socialStore ).userConnectionUrl(), [] );
-
-	const { numberOfSharesRemaining } = useSelect( select => {
+	const { numberOfSharesRemaining, useAdminUiV1 } = useSelect( select => {
+		const store = select( socialStore );
 		return {
-			showShareLimits: select( socialStore ).showShareLimits(),
-			numberOfSharesRemaining: select( socialStore ).numberOfSharesRemaining(),
+			numberOfSharesRemaining: store.numberOfSharesRemaining(),
+			useAdminUiV1: store.useAdminUiV1(),
 		};
 	}, [] );
 
@@ -93,10 +98,12 @@ export default function PublicizeForm() {
 
 	refreshConnections();
 
-	const { isUserConnected } = useConnection();
-
 	return (
 		<Wrapper>
+			{
+				// Render modal only once
+				useAdminUiV1 ? <ManageConnectionsModal /> : null
+			}
 			{ hasConnections ? (
 				<>
 					<PanelRow>
@@ -123,7 +130,7 @@ export default function PublicizeForm() {
 				{
 					// Use IIFE make it more readable and avoid nested ternary operators.
 					( () => {
-						if ( ! isUserConnected ) {
+						if ( needsUserConnection ) {
 							return (
 								<p>
 									{ __(
@@ -131,7 +138,7 @@ export default function PublicizeForm() {
 										'jetpack'
 									) }
 									&nbsp;
-									<a href={ useConnectionUrl }>{ __( 'Connect now', 'jetpack' ) }</a>
+									<a href={ userConnectionUrl }>{ __( 'Connect now', 'jetpack' ) }</a>
 								</p>
 							);
 						}
@@ -139,14 +146,13 @@ export default function PublicizeForm() {
 						if ( ! hasConnections ) {
 							return (
 								<p>
-									{ __(
-										'Sharing is disabled because there are no social media accounts connected.',
-										'jetpack'
-									) }
-									<br />
-									<ExternalLink href={ connectionsAdminUrl }>
-										{ __( 'Connect an account', 'jetpack' ) }
-									</ExternalLink>
+									<span className={ styles[ 'no-connections-text' ] }>
+										{ __(
+											'Sharing is disabled because there are no social media accounts connected.',
+											'jetpack'
+										) }
+									</span>
+									<SettingsButton label={ __( 'Connect an account', 'jetpack' ) } />
 								</p>
 							);
 						}

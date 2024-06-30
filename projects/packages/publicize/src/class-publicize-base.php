@@ -12,6 +12,7 @@ namespace Automattic\Jetpack\Publicize;
 use Automattic\Jetpack\Connection\Client;
 use Automattic\Jetpack\Connection\Manager as Connection_Manager;
 use Automattic\Jetpack\Current_Plan;
+use Automattic\Jetpack\Paths;
 use Automattic\Jetpack\Redirect;
 use Automattic\Jetpack\Status;
 use WP_Error;
@@ -238,7 +239,7 @@ abstract class Publicize_Base {
 
 		// Default checkbox state for each Connection.
 		add_filter( 'publicize_checkbox_default', array( $this, 'publicize_checkbox_default' ), 10, 2 );
-		add_filter( 'jetpack_open_graph_tags', array( $this, 'jetpack_social_open_graph_filter' ), 12, 1 ); // $priority = 12, to run after Jetpack adds the tags in the Jetpack_Twitter_Cards class.
+		add_filter( 'jetpack_open_graph_tags', array( $this, 'add_jetpack_social_og_images' ), 12, 1 ); // $priority = 12, to run after Jetpack adds the tags in the Jetpack_Twitter_Cards class.
 
 		// Alter the "Post Publish" admin notice to mention the Connections we Publicized to.
 		add_filter( 'post_updated_messages', array( $this, 'update_published_message' ), 20, 1 );
@@ -272,6 +273,21 @@ abstract class Publicize_Base {
 	 * @return array
 	 */
 	abstract public function get_services( $filter = 'all', $_blog_id = false, $_user_id = false );
+
+	/**
+	 * Whether to use the v1 admin UI.
+	 */
+	public function use_admin_ui_v1(): bool {
+
+		// If the option is set, use it.
+		if ( get_option( 'jetpack_social_use_admin_ui_v1', false ) ) {
+			return true;
+		}
+
+		// Otherwise, check the constant and the plan feature.
+		return ( defined( 'JETPACK_SOCIAL_USE_ADMIN_UI_V1' ) && JETPACK_SOCIAL_USE_ADMIN_UI_V1 )
+			|| $this->has_connections_management_feature();
+	}
 
 	/**
 	 * Does the given user have a connection to the service on the given blog?
@@ -827,6 +843,7 @@ abstract class Publicize_Base {
 	 *     @type bool   'done'             Has this connection already been publicized to?
 	 *     @type bool   'toggleable'       Is the user allowed to change the value for the connection?
 	 *     @type bool   'global'           Is this connection a global one?
+	 *     @type string 'external_id'      External ID for the connection.
 	 * }
 	 */
 	public function get_filtered_connection_data( $selected_post_id = null ) {
@@ -854,7 +871,7 @@ abstract class Publicize_Base {
 				$connection_id   = $this->get_connection_id( $connection );
 				// Was this connection (OR, old-format service) already Publicized to?
 				$done = ! empty( $post ) && (
-					// Flags based on token_id
+					// Flags based on token_id.
 					1 === (int) get_post_meta( $post->ID, $this->POST_DONE . $unique_id, true )
 					||
 					// Old flags.
@@ -959,6 +976,8 @@ abstract class Publicize_Base {
 					'done'            => $done,
 					'toggleable'      => $toggleable,
 					'global'          => 0 == $connection_data['user_id'], // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual,WordPress.PHP.StrictComparisons.LooseComparison -- Other types can be used at times.
+					'external_id'     => $connection_meta['external_id'] ?? '',
+					'user_id'         => $connection_data['user_id'],
 				);
 			}
 		}
@@ -1655,7 +1674,8 @@ abstract class Publicize_Base {
 	 * @return string
 	 */
 	public function get_resized_image_url( $image_url, $width, $height ) {
-		return jetpack_photon_url(
+		return apply_filters(
+			'jetpack_photon_url',
 			$image_url,
 			array(
 				'w' => $width,
@@ -1804,6 +1824,37 @@ abstract class Publicize_Base {
 	}
 
 	/**
+	 * Add the Jetpack Social images (attached media, SIG image) to the OpenGraph tags.
+	 *
+	 * @param array $tags Current tags.
+	 */
+	public function add_jetpack_social_og_images( $tags ) {
+		$opengraph_image = $this->get_social_opengraph_image( get_the_ID() );
+
+		if ( empty( $opengraph_image ) ) {
+			return $tags;
+		}
+
+		// If this code is running in Jetpack, we need to add Twitter cards.
+		// Some active plugins disable Jetpack's Twitter Cards, so we need
+		// to check if the class was instantiated before adding the cards.
+		$needs_twitter_cards = class_exists( 'Jetpack_Twitter_Cards' );
+
+		return array_merge(
+			$tags,
+			array(
+				'og:image'        => $opengraph_image['url'],
+				'og:image:width'  => $opengraph_image['width'],
+				'og:image:height' => $opengraph_image['height'],
+			),
+			$needs_twitter_cards ? array(
+				'twitter:image' => $opengraph_image['url'],
+				'twitter:card'  => 'summary_large_image',
+			) : array()
+		);
+	}
+
+	/**
 	 * Util
 	 */
 
@@ -1837,6 +1888,14 @@ abstract class Publicize_Base {
 	 * @return string
 	 */
 	public function publicize_connections_url( $source = 'calypso-marketing-connections' ) {
+		if ( $this->use_admin_ui_v1() && current_user_can( 'manage_options' ) ) {
+			$is_social_active = defined( 'JETPACK_SOCIAL_PLUGIN_DIR' );
+
+			$page = $is_social_active ? 'jetpack-social' : 'jetpack#/sharing';
+
+			return ( new Paths() )->admin_url( array( 'page' => $page ) );
+		}
+
 		$allowed_sources = array( 'jetpack-social-connections-admin-page', 'jetpack-social-connections-classic-editor', 'calypso-marketing-connections' );
 		$source          = in_array( $source, $allowed_sources, true ) ? $source : 'calypso-marketing-connections';
 		$blog_id         = Connection_Manager::get_site_id( true );
@@ -1964,6 +2023,15 @@ abstract class Publicize_Base {
 	}
 
 	/**
+	 * Check if the new connections management is enabled is enabled.
+	 *
+	 * @return bool
+	 */
+	public function has_connections_management_feature() {
+		return Current_Plan::supports( 'social-connections-management' );
+	}
+
+	/**
 	 * Get a list of additional connections that are supported by the current plan.
 	 *
 	 * @return array
@@ -1981,6 +2049,10 @@ abstract class Publicize_Base {
 
 		if ( $this->has_connection_feature( 'nextdoor' ) ) {
 			$additional_connections[] = 'nextdoor';
+		}
+
+		if ( $this->has_connection_feature( 'threads' ) ) {
+			$additional_connections[] = 'threads';
 		}
 
 		return $additional_connections;
@@ -2015,10 +2087,19 @@ abstract class Publicize_Base {
 	 */
 	public function has_paid_plan( $refresh_from_wpcom = false ) {
 		static $has_paid_plan = null;
-		if ( $has_paid_plan === null ) {
+		if ( null === $has_paid_plan ) {
 			$has_paid_plan = Current_Plan::supports( 'social-shares-1000', $refresh_from_wpcom );
 		}
 		return $has_paid_plan;
+	}
+
+	/**
+	 * Check if we have paid features enabled.
+	 *
+	 * @return bool True if we have paid features, false otherwise.
+	 */
+	public function has_paid_features() {
+		return $this->has_enhanced_publishing_feature();
 	}
 
 	/**
@@ -2034,6 +2115,17 @@ abstract class Publicize_Base {
 		}
 
 		return $dismissed_notices;
+	}
+
+	/**
+	 * Whether the current user can manage a connection.
+	 *
+	 * @param array $connection_data The connection data.
+	 *
+	 * @return bool
+	 */
+	public static function can_manage_connection( $connection_data ) {
+		return current_user_can( 'edit_others_posts' ) || get_current_user_id() === (int) $connection_data['user_id'];
 	}
 }
 

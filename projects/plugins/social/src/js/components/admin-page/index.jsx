@@ -4,6 +4,7 @@ import {
 	AdminSectionHero,
 	Container,
 	Col,
+	GlobalNotices,
 } from '@automattic/jetpack-components';
 import { useConnection } from '@automattic/jetpack-connection';
 import { store as socialStore } from '@automattic/jetpack-publicize-components';
@@ -37,8 +38,7 @@ const Admin = () => {
 	const {
 		isModuleEnabled,
 		showPricingPage,
-		hasPaidPlan,
-		isShareLimitEnabled,
+		hasPaidFeatures,
 		pluginVersion,
 		isSocialImageGeneratorAvailable,
 		isAutoConversionAvailable,
@@ -49,8 +49,7 @@ const Admin = () => {
 		return {
 			isModuleEnabled: store.isModuleEnabled(),
 			showPricingPage: store.showPricingPage(),
-			hasPaidPlan: store.hasPaidPlan(),
-			isShareLimitEnabled: store.isShareLimitEnabled(),
+			hasPaidFeatures: store.hasPaidFeatures(),
 			pluginVersion: store.getPluginVersion(),
 			isSocialImageGeneratorAvailable: store.isSocialImageGeneratorAvailable(),
 			isAutoConversionAvailable: store.isAutoConversionAvailable(),
@@ -93,7 +92,8 @@ const Admin = () => {
 
 	return (
 		<AdminPage moduleName={ moduleName } header={ <AdminPageHeader /> }>
-			{ ( isShareLimitEnabled && ! hasPaidPlan && showPricingPage ) || forceDisplayPricingPage ? (
+			<GlobalNotices />
+			{ ( ! hasPaidFeatures && showPricingPage ) || forceDisplayPricingPage ? (
 				<AdminSectionHero>
 					<Container horizontalSpacing={ 3 } horizontalGap={ 3 }>
 						<Col>

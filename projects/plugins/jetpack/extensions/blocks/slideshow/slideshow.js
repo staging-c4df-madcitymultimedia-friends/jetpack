@@ -6,7 +6,7 @@ import { RichText } from '@wordpress/block-editor';
 import { Spinner } from '@wordpress/components';
 import { Component, createRef } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import classnames from 'classnames';
+import clsx from 'clsx';
 import { isEqual } from 'lodash';
 import ResizeObserver from 'resize-observer-polyfill';
 /**
@@ -120,12 +120,13 @@ class Slideshow extends Component {
 			return null;
 		}
 
-		const { autoplay, delay, effect, images } = this.props;
+		const { autoplay, className, delay, effect, images } = this.props;
 		// Note: React omits the data attribute if the value is null, but NOT if it is false.
 		// This is the reason for the unusual logic related to autoplay below.
 		/* eslint-disable jsx-a11y/anchor-is-valid */
 		return (
 			<div
+				className={ className }
 				data-autoplay={ autoplay || null }
 				data-delay={ autoplay ? delay : null }
 				data-effect={ effect }
@@ -137,7 +138,7 @@ class Slideshow extends Component {
 					<ul className="wp-block-jetpack-slideshow_swiper-wrapper swiper-wrapper">
 						{ images.map( ( { alt, caption, id, url } ) => (
 							<li
-								className={ classnames(
+								className={ clsx(
 									'wp-block-jetpack-slideshow_slide',
 									'swiper-slide',
 									isBlobURL( url ) && 'is-transient'

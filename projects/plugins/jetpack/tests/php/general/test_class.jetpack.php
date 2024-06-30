@@ -12,7 +12,7 @@ use Automattic\Jetpack\Constants;
 use Automattic\Jetpack\Status;
 use Automattic\Jetpack\Status\Cache as StatusCache;
 
-// Extend with a public constructor so that can be mocked in tests
+/** Extend with a public constructor so that can be mocked in tests. */
 class MockJetpack extends Jetpack {
 
 	/**
@@ -96,6 +96,7 @@ class WP_Test_Jetpack extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		parent::tear_down();
+		unset( $_GET['for'] );
 		Constants::clear_constants();
 		StatusCache::clear();
 	}
@@ -199,7 +200,7 @@ EXPECTED;
 		$this->assertEquals( $expected, $result );
 	}
 
-	/*
+	/**
 	 * @author tonykova
 	 */
 	public function test_implode_frontend_css_enqueues_bundle_file_handle() {
@@ -341,7 +342,7 @@ EXPECTED;
 		$this->assertEquals( $active_modules, array( 'monitor', 'stats' ) );
 	}
 
-	// This filter overrides the 'monitor' module.
+	/** This filter overrides the 'monitor' module. */
 	public static function e2e_test_filter( $modules ) {
 		$disabled_modules = array( 'monitor' );
 
@@ -770,11 +771,13 @@ EXPECTED;
 	private function mocked_setup_xmlrpc_handlers( $request_params, $has_connected_owner, $is_signed, $user = false ) {
 		$GLOBALS['HTTP_RAW_POST_DATA'] = '';
 
+		$_GET['for'] = $request_params['for'];
+
 		Constants::set_constant( 'XMLRPC_REQUEST', true );
 
 		$jetpack       = new MockJetpack();
 		$xmlrpc_server = new MockJetpack_XMLRPC_Server( $user );
-		return $jetpack::connection()->setup_xmlrpc_handlers( $request_params, $has_connected_owner, $is_signed, $xmlrpc_server );
+		return $jetpack::connection()->setup_xmlrpc_handlers( null, $has_connected_owner, $is_signed, $xmlrpc_server );
 	}
 
 	/**
@@ -863,6 +866,7 @@ EXPECTED;
 			'jetpack.subscriptions.subscribe',
 			'jetpack.updatePublicizeConnections',
 			'jetpack.getHeartbeatData',
+			'jetpack.userDisconnect',
 		);
 
 		$this->assertXMLRPCMethodsComply( $required, $allowed, array_keys( $methods ) );
@@ -919,6 +923,7 @@ EXPECTED;
 			'jetpack.subscriptions.subscribe',
 			'jetpack.updatePublicizeConnections',
 			'jetpack.getHeartbeatData',
+			'jetpack.userDisconnect',
 		);
 
 		$this->assertXMLRPCMethodsComply( $required, $allowed, array_keys( $methods ) );

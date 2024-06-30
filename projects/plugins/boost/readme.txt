@@ -3,9 +3,9 @@ Contributors: automattic, xwp, adnan007, bjorsch, danwalmsley, davidlonjon, dili
 Donate link: https://automattic.com
 Tags: performance, speed, web vitals, critical css, cache
 Requires at least: 5.5
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 7.0
-Stable tag: 3.2.2
+Stable tag: 3.4.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -183,21 +183,18 @@ If you run into compatibility issues, please do let us know. You can drop us a l
 2. Jetpack Boost Speed Improvement
 
 == Changelog ==
-### 3.2.2 - 2024-04-02
+### 3.4.6 - 2024-06-26
 #### Added
-- Cache: Ensure cache engine is loading every time the Settings page loads.
-- Cache: Clear cache if Boost module settings are changed
-- Cache: Show notification in site health if cache system isn't loading.
-- Compatibility: Improved compatibility with SEO plugins for smoother Cloud CSS generation.
+- General: Automatically enables Page Cache when migrating from WP Super Cache.
 
-#### Changed
-- Cloud CSS: Optimize regeneration time.
-- Cloud CSS: Update REST API endpoint to be available even if the module is turned off.
-- Performance History: Sanitize graph annotation text.
-- Speed Score: More accurately detect which modules are active when a speed score is requested.
-- General: Only show installation errors on plugins page.
-- General: Updated package dependencies.
-- General: Update getting started and upgrade copies.
+
+#### Fixed
+- Image CDN: Improvements to more closely match WP core behavior.
+- General: indicate compatibility with the upcoming version of WordPress - 6.6.
+- Updated package dependencies.
+- Page Cache: Update WP_CACHE detection in wp-config.php
+- Page Cache: Avoid caching error pages.
+- General: Fix instance where deactivating Boost can break caching for other caching plugins.
 
 --------
 

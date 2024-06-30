@@ -2,6 +2,73 @@
 
 ### This is a list detailing changes for the Jetpack RNA Components package releases.
 
+## [0.54.2] - 2024-06-25
+### Added
+- Added social preview for Threads [#38003]
+
+## [0.54.1] - 2024-06-24
+### Fixed
+- Updated threads icon color [#37977]
+
+## [0.54.0] - 2024-06-21
+### Added
+- Added Chip component [#37916]
+
+## [0.53.10] - 2024-06-12
+### Changed
+- Updated package dependencies. [#37796]
+
+## [0.53.9] - 2024-06-11
+### Changed
+- Updated package dependencies. [#37779]
+
+## [0.53.8] - 2024-06-10
+### Changed
+- Change codebase to use clsx instead of classnames. [#37708]
+
+## [0.53.7] - 2024-06-05
+### Changed
+- Updated package dependencies. [#37669]
+
+## [0.53.6] - 2024-05-30
+### Changed
+- Connection: Update connection ToS messaging slightly [#37536]
+
+## [0.53.5] - 2024-05-23
+### Changed
+- Updated package dependencies. [#36964]
+
+## [0.53.4] - 2024-05-22
+### Changed
+- Internal updates.
+
+## [0.53.3] - 2024-05-16
+### Added
+- Social | Wired up confirmation UI with connect button [#37295]
+
+### Changed
+- Updated package dependencies. [#37379]
+- Updated package dependencies. [#37380]
+- Updated package dependencies. [#37382]
+
+## [0.53.2] - 2024-05-13
+### Added
+- Added --jp-gray-5 as an alias of --jp-gray to the theme [#37327]
+
+### Fixed
+- Fixed notices z-index for global notices when modal is open [#37196]
+
+## [0.53.1] - 2024-05-09
+### Added
+- Added GlobalNotices component and useGlobalNotices hook [#37286]
+
+## [0.53.0] - 2024-05-08
+### Added
+- Social: Added add connection modal [#37211]
+
+### Changed
+- Jetpack Backup: Add a LoadingPlaceholder while waiting for Jetpack Backup price [#37238]
+
 ## [0.52.1] - 2024-05-06
 ### Changed
 - Updated package dependencies. [#37147] [#37148] [#37160]
@@ -1012,6 +1079,20 @@
 ### Changed
 - Update node version requirement to 14.16.1
 
+[0.54.2]: https://github.com/Automattic/jetpack-components/compare/0.54.1...0.54.2
+[0.54.1]: https://github.com/Automattic/jetpack-components/compare/0.54.0...0.54.1
+[0.54.0]: https://github.com/Automattic/jetpack-components/compare/0.53.10...0.54.0
+[0.53.10]: https://github.com/Automattic/jetpack-components/compare/0.53.9...0.53.10
+[0.53.9]: https://github.com/Automattic/jetpack-components/compare/0.53.8...0.53.9
+[0.53.8]: https://github.com/Automattic/jetpack-components/compare/0.53.7...0.53.8
+[0.53.7]: https://github.com/Automattic/jetpack-components/compare/0.53.6...0.53.7
+[0.53.6]: https://github.com/Automattic/jetpack-components/compare/0.53.5...0.53.6
+[0.53.5]: https://github.com/Automattic/jetpack-components/compare/0.53.4...0.53.5
+[0.53.4]: https://github.com/Automattic/jetpack-components/compare/0.53.3...0.53.4
+[0.53.3]: https://github.com/Automattic/jetpack-components/compare/0.53.2...0.53.3
+[0.53.2]: https://github.com/Automattic/jetpack-components/compare/0.53.1...0.53.2
+[0.53.1]: https://github.com/Automattic/jetpack-components/compare/0.53.0...0.53.1
+[0.53.0]: https://github.com/Automattic/jetpack-components/compare/0.52.1...0.53.0
 [0.52.1]: https://github.com/Automattic/jetpack-components/compare/0.52.0...0.52.1
 [0.52.0]: https://github.com/Automattic/jetpack-components/compare/0.51.0...0.52.0
 [0.51.0]: https://github.com/Automattic/jetpack-components/compare/0.50.5...0.51.0
